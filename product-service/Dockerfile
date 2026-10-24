@@ -1,13 +1,12 @@
-
 FROM node:24-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY product-service/package*.json ./
 
 RUN npm ci
 
-COPY . .
+COPY product-service/ .
 
 RUN npm run build
 
