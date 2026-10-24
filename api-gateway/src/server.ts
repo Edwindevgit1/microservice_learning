@@ -1,35 +1,32 @@
-import "dotenv/config"
-import { createServer,type Server } from "node:http";
-import type { Application } from "express";
-import App from "./app.js";
+import app from "./app.js";
+import { env } from "./config/env.js";
 
+const server = app.listen(env.port, () => {
+  console.log(`API Gateway running on port ${env.port}`);
+});
 
-class ServerApp{
-  private readonly PORT: number = Number(process.env.PORT)
-  private readonly app:Application
-  private readonly server:Server
-  constructor(){
-    this.app = new App().app
-    this.server = createServer(this.app)
-  }
-  public start():void{
-    this.server.listen(this.PORT,()=>{
-      console.log(`Api Gateway is running on port${this.PORT}`)
-    })
-    process.once("SIGINT",()=>this.shutdown("SIGNINT"))
-    process.once("SIGTERM",()=>this.shutdown("SIGTERM"))
-  }
-  private shutdown(signal:string):void{
-    console.log(`${signal} received ... Closing API Gateway`)
-    this.server.close((error)=>{
-        if(error){
-          console.log("Shutdown failed",error)
-          process.exit(1)
-          return;
-        }
-        console.log("Api Gateway stopped")
-    })
-  }
+server.requestTimeout = 30_000;
+server.headersTimeout = 35_000;
+server.keepAliveTimeout = 5_000;
+
+function shutdown(signal: string): void {
+  console.log(`${signal} received. Shutting down...`);
+
+  server.close((error) => {
+    if (error) {
+      console.error("Shutdown error:", error);
+      process.exitCode = 1;
+      return;
+    }
+
+    console.log("API Gateway stopped.");
+  });
+
+  setTimeout(() => {
+    console.error("Graceful shutdown timed out.");
+    process.exit(1);
+  }, 10_000).unref();
 }
-const serverApp = new ServerApp()
-serverApp.start()
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

@@ -2,7 +2,7 @@
 import express from "express";
 
 const app = express();
-const PORT = 5001;
+const PORT = 5002;
 
 app.use(express.json());
 
