@@ -2,14 +2,14 @@ FROM node:24-alpine
 
 WORKDIR /app
 
-COPY product-service/package*.json ./
+COPY package*.json ./
 
 RUN npm ci
 
-COPY product-service/ .
+COPY  . .
 
 RUN npm run build
 
-EXPOSE 5001
+EXPOSE 5002
 
 CMD ["npm", "start"]
